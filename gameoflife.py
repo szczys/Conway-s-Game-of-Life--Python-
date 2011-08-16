@@ -18,16 +18,16 @@ lifeTruthTable = [
     [ 0, 0, 1, 1, 0, 0, 0, 0, 0 ]
     ]
 
+#Set a variable that allows a QUIT event to break the infinite loop
+running = True
+
+#Trackers to tell when evolution has stopped
+parentGeneration = [[0] * rows] * columns
+grandparentGeneration = parentGeneration
+generation = 1
+stagnant = 0
+
 nextGeneration = USEREVENT+1
-
-pygame.init()
-screen = pygame.display.set_mode((columns*(cellSize+cellGap)-cellGap,rows*(cellSize+cellGap)-cellGap))
-pygame.display.set_caption("Life")
-
-background = pygame.Surface(screen.get_size())
-background.fill((0,0,0))
-
-screen.blit(background,(0,0))
 
 def BigBang():
     global lifeTracker, rows, columns
@@ -57,10 +57,12 @@ for i in range(columns):
 def revealOrganisms():
     for i in range(columns):
         for j in range(rows):
-            if lifeTracker[i][j]:
-                pygame.draw.rect(screen, (255,255,255),cells[i][j])
-            else:
-                pygame.draw.rect(screen, (0,0,0),cells[i][j])
+            #only redraw cells that have changed.
+            if (lifeTracker[i][j] != parentGeneration[i][j]):
+                if lifeTracker[i][j]:
+                    pygame.draw.rect(screen, (255,255,255),cells[i][j])
+                else:
+                    pygame.draw.rect(screen, (0,0,0),cells[i][j])
 
 #calculte who live and who dies
 def reproduce():
@@ -101,18 +103,20 @@ def reproduce():
     lifeTracker = workingArray
     
 
-#Set a variable that allows a QUIT event to break the infinite loop
-running = True
+#main program
+
+#setup screen
+pygame.init()
+screen = pygame.display.set_mode((columns*(cellSize+cellGap)-cellGap,rows*(cellSize+cellGap)-cellGap))
+pygame.display.set_caption("Life")
+background = pygame.Surface(screen.get_size())
+background.fill((0,0,0))
+screen.blit(background,(0,0))
 
 #Set a timer to initiate each geneartional event
 pygame.time.set_timer(nextGeneration, generationGap)
 
-#Trackers to tell when evolution has stopped
-parentGeneration = []
-grandparentGeneration = []
-generation = 1
-stagnant = 0
-
+#generate universe
 BigBang()
 revealOrganisms()
 
