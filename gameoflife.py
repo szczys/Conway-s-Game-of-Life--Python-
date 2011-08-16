@@ -74,36 +74,12 @@ def reproduce():
         nextRow = []
         for row in range(rows):
             
-            #find neighbors
-            myNeighbors = []
-            #columns
-            if column:
-                myNeighbors.append(column-1)
-            else:
-                myNeighbors.append(columns-1)
-            myNeighbors.append(column)
-            myNeighbors.append(column+1)
-            if (myNeighbors[2]) >= columns:
-                myNeighbors[2] = 0
-                                
-            #rows
-            if row:
-                myNeighbors.append(row-1)
-            else:
-                myNeighbors.append(rows-1)
-            myNeighbors.append(row)
-            myNeighbors.append(row+1)
-            if (myNeighbors[5] >= rows):
-                myNeighbors[5] = 0
-
-            
-
             #calculate live neighbors
             thisCellStatus = lifeTracker[column][row]
             liveNeighbors = 0
-            for k in range(3):
-                for l in range(3,6):
-                    liveNeighbors += lifeTracker[myNeighbors[k]][myNeighbors[l]]
+            for k in range(-1,2):
+                for l in range(-1,2):
+                    liveNeighbors += lifeTracker[(column+k)%columns][(row+l)%rows]
             #account for adding in thisCell
             liveNeighbors -= thisCellStatus
                 
