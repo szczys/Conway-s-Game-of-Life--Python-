@@ -1,13 +1,19 @@
-import pygame
-from pygame.locals import *
+import subprocess
+import time
+import sys
 from random import random
 
-generationGap = 200    #milliseconds between generations
+generationGap = 0.2    #seconds between generations
 populationDensity = 23  #pecent of cells that should be populated at start of game
-columns = 64
-rows = 48
 cellSize = 9    #pixel width and height of each cell
 cellGap = 1     #pixels between cells
+
+#set universe size to terminal screen
+terminalLines = subprocess.Popen(["tput", "cols"], stdout=subprocess.PIPE)
+terminalRows = subprocess.Popen(["tput", "lines"], stdout=subprocess.PIPE)
+columns = int(terminalLines.communicate()[0])
+rows = int(terminalRows.communicate()[0]) - 1
+
 
 #Life truth table is a multidemtional array.
 #  the first dimension is dead or alive (0 or 1)
@@ -25,9 +31,6 @@ running = True
 parentGeneration = [[0] * rows] * columns
 grandparentGeneration = parentGeneration
 generation = 1
-stagnant = 0
-
-nextGeneration = USEREVENT+1
 
 def BigBang():
     global lifeTracker, rows, columns
@@ -47,24 +50,23 @@ def lifeLottery():
 #Populate an array full of cells
 lifeTracker = []
 cells = []
-for i in range(columns):
-    nextRow = []
-    for j in range(rows):
-        nextRow.append(pygame.Rect(((cellSize+cellGap)*i,(cellSize+cellGap)*j), (cellSize,cellSize)))
-    cells.append(nextRow)
 
 #Draw cells on screen
 def revealOrganisms():
-    updateRect = []
-    for i in range(columns):
-        for j in range(rows):
-            #only redraw cells that have changed.
-            if (lifeTracker[i][j] != parentGeneration[i][j]):
-                if lifeTracker[i][j]:
-                    updateRect.append(pygame.draw.rect(screen, (255,255,255),cells[i][j]))
-                else:
-                    updateRect.append(pygame.draw.rect(screen, (0,0,0),cells[i][j]))
-    pygame.display.update(updateRect)
+    gameScreenString = ""    #ASCII command clears screen and moves cursor to 0,0
+
+    #Note: this is a hack... I've consistently mixed up my columns and rows to this point
+    #      For the rest of this function indexes will be backwards compared to rest of program
+    for i in range(rows):
+        for j in range(columns):
+            if lifeTracker[j][i]:
+                gameScreenString += "\xE2\x96\x89"
+            else:
+                gameScreenString += " "
+    subprocess.call(["tput", "cup", "0,0"]) #return cursor to top of terminal
+    subprocess.call(["echo", "-e", gameScreenString[:-2]])
+
+    
 
 #calculte who live and who dies
 def reproduce():
@@ -93,11 +95,8 @@ def reproduce():
 
     #check for stagnant evolution
     if (workingArray == grandparentGeneration) or (workingArray == parentGeneration):
-        stagnant = 1
         print "Generations before stagnation: " + str(generation)
-        pygame.time.set_timer(nextGeneration, 0)
-        pygame.display.set_caption("Life - Generations before stagnation: " + str(generation))
-        
+        sys.exit()
     else:
         grandparentGeneration = parentGeneration
         parentGeneration = lifeTracker
@@ -107,26 +106,11 @@ def reproduce():
 
 #main program
 
-#setup screen
-pygame.init()
-screen = pygame.display.set_mode((columns*(cellSize+cellGap)-cellGap,rows*(cellSize+cellGap)-cellGap))
-pygame.display.set_caption("Life")
-background = pygame.Surface(screen.get_size())
-background.fill((0,0,0))
-screen.blit(background,(0,0))
-
-#Set a timer to initiate each geneartional event
-pygame.time.set_timer(nextGeneration, generationGap)
-
 #generate universe
 BigBang()
-revealOrganisms()
+subprocess.call("clear")
 
-while running:
-    for event in pygame.event.get():
-        if (event.type == nextGeneration):
-            reproduce()
-            revealOrganisms()
-        elif (event.type == pygame.QUIT):
-            running = False
-pygame.quit()
+while 1:
+    revealOrganisms()
+    reproduce()
+    time.sleep(generationGap)
