@@ -55,14 +55,16 @@ for i in range(columns):
 
 #Draw cells on screen
 def revealOrganisms():
+    updateRect = []
     for i in range(columns):
         for j in range(rows):
             #only redraw cells that have changed.
             if (lifeTracker[i][j] != parentGeneration[i][j]):
                 if lifeTracker[i][j]:
-                    pygame.draw.rect(screen, (255,255,255),cells[i][j])
+                    updateRect.append(pygame.draw.rect(screen, (255,255,255),cells[i][j]))
                 else:
-                    pygame.draw.rect(screen, (0,0,0),cells[i][j])
+                    updateRect.append(pygame.draw.rect(screen, (0,0,0),cells[i][j]))
+    pygame.display.update(updateRect)
 
 #calculte who live and who dies
 def reproduce():
@@ -121,7 +123,6 @@ BigBang()
 revealOrganisms()
 
 while running:
-    pygame.display.flip()
     for event in pygame.event.get():
         if (event.type == nextGeneration):
             reproduce()
