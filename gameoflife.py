@@ -94,7 +94,7 @@ def reproduce():
     #check for stagnant evolution
     if (workingArray == grandparentGeneration) or (workingArray == parentGeneration):
         stagnant = 1
-        print "Generations before stagnation: " + str(generation)
+        print("Generations before stagnation: " + str(generation))
         pygame.time.set_timer(nextGeneration, 0)
         pygame.display.set_caption("Life - Generations before stagnation: " + str(generation))
         
